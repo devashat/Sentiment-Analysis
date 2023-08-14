@@ -1,0 +1,145 @@
+\documentclass[10pt]{article}
+
+\usepackage{fullpage}
+\usepackage{amsmath}
+
+
+\title{\textbf{Assignment 3 Report}}
+\author{Daniel Hsieh, Lucas Schmitt, Devasha Trivedi}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{1. Programming: Text Classification with Neural Networks}
+
+\begin{center}
+    \begin{tabular}{ c|c|c|c} 
+     Model & \shortstack{Training Set \\ Accuracy } & \shortstack{Test Set \\ Accuracy } & \\ \hline 
+     \shortstack{\\ RNN} & 0.986 & 0.661 & \\ \hline
+     \shortstack{\\ LSTM} & 0.942 & 0.722 &  \\ \hline
+    \end{tabular}
+\end{center}
+
+\noindent We decided to use 10 epochs instead of 20 when fitting the model because after the 10th epoch, there was not much improvement. 
+Through these results, we can see that the RNN and LSTM models were both close in accuracy on the training set, and the LSTM model 
+outpeforms the RNN model on the test set. Given what we expected in terms of performance, the LSTM model outperforming the RNN model is not a surprise 
+and fits with our expectations.
+
+\section*{2. Deriving the Viterbi Algorithm}
+
+\subsection*{2.1.}
+
+\noindent We are given that for every possible value of \(y_{j}\) ,
+
+\begin{center}
+\(v_{j}(y_{j}) =\)
+\(\max_{y_{1\ },\ \ \ .\ .\ .\ ,\ y_{j - 1}}s(x,\ i,\ y_{j - 1},\ \ y_{i})\ \)
+\end{center}
+
+\noindent This is equivalent to
+
+\begin{center}
+\(\max_{y_{j - 1}}\lbrack\max_{y_{1\ },\ \ \ .\ .\ .\ ,\ y_{j - 2}}s(x,\ j,\ y_{j - 1},\ \ y_{j}) + s(x,\ i,\ y_{i - 1},\ \ y_{i})\rbrack\ \)
+\end{center}
+
+\noindent which equals
+
+\begin{center}
+\(\max_{y_{j - 1}}\lbrack{s(x,\ j,\ y_{j - 1},\ \ y_{j}) + max}_{y_{1\ },\ \ \ .\ .\ .\ ,\ y_{j - 2}}s(x,\ i,\ y_{j - 1},\ \ y_{i})\rbrack\)
+\end{center}
+
+\noindent From the initial equation we can get that
+
+\begin{center}
+\(\max_{y_{1\ },\ \ \ .\ .\ .\ ,\ y_{j - 2}}s(x,\ i,\ y_{j - 1},\ \ y_{i})\)
+\end{center}
+
+\noindent is equivalent to 
+
+\begin{center}
+\(v_{j - 1}(y_{j - 1})\)
+\end{center}
+
+\noindent so we can substitute that back into the equation to get
+
+\begin{center}
+\(v_{j}(y_{j}) =\)
+\(\max_{y_{j - 1}}\lbrack s(x,\ j,\ y_{j - 1},\ \ y_{j}) + v_{j - 1}(y_{j - 1})\rbrack\).
+\end{center}
+
+
+\noindent Thus we have shown that for every possible value of \(y_{j}\), where
+
+\begin{center}
+\(v_{j}(y_{j}) =\)\(\max_{y_{1\ },\ \ \ .\ .\ .\ ,\ y_{j - 1}}s(x,\ i,\ y_{j - 1},\ \ y_{i})\ \),
+\(v_{j}(y_{j}) =\)
+\(\max_{y_{j - 1}}\lbrack s(x,\ i,\ y_{j - 1},\ \ y_{j}) + v_{j - 1}(y_{j - 1})\rbrack\)
+\end{center}
+
+\noindent is true.
+
+\subsection*{2.2.}
+ The Viterbi algorithm can be represented as a matrix of size
+\emph{T} x \emph{n} where \emph{T} is the total number of possible tags
+or classes and \emph{n} is the length of the sequence or sentence. For
+each square in the \emph{T x n} matrix, we need to look through \emph{T}
+different things/classes with argmax. Therefore, the time complexity of
+the Viterbi algorithm is O(n\textbar T\textbar{}\textsuperscript{2}). 
+
+\section*{3. The Viterbi Algorithm}
+In this section, we implement the Viterbi algorithm for named entity recognition. We do this by implementing a decode() fucntion. This function takes an input length, set of tags, and score function. For the viterbi algorithm, we create two matricies of size (len(tagset) x len(input)). These matricies keep track of the optimal score and node choice at any [tag][token] pair. From there. We populate these matrices using the provided score function, such that:
+\begin{center}
+    $score[i][j]=max_k(scores[k,j-1]+score(tagset[i], tagset[k], j)$\\
+    $tags[i][j]=argmax_k(scores[k,j-1]+score(tagset[i], tagset[k], j)$
+    For all tags $i$ and input token $j$
+\end{center}
+We can then backtrack these matrices, starting with the tag that gives us the maximum score for $score[i][len(input)]$, where the optimal tag for input token $j-1$ is:
+\begin{center}
+    $optimal\_tag[j-1]=tags[optimal\_tag[j-1]][j]$
+\end{center}
+Using this method, we backward propagate the optimal path, providing us with the optimal solution for this algorithm.\\
+Using this method, we get the following accuracy, precision, recall, and $F_1$:
+
+\begin{center}
+    \begin{tabular}{ c|c|c|} 
+     \% & ner.dev & ner.test\\
+     
+     \hline 
+     Accuracy        & 89.61 & 88.02  \\ \hline
+     Percision       & 59.80 & 53.28  \\ \hline
+     Recall          & 41.25 & 37.41  \\ \hline
+     $F_1$           & 48.82 & 43.96  \\ \hline
+\end{tabular}
+\end{center}
+We get the following full output for the dev file:\\
+\begingroup
+    \fontsize{8pt}{12pt}\selectfont
+    \begin{verbatim}  
+processed 51578 tokens with 5917 phrases; found: 4082 phrases; correct: 2441.
+accuracy:  41.38%; (non-O)
+accuracy:  89.61%; precision:  59.80%; recall:  41.25%; FB1:  48.82
+              LOC: precision:  87.53%; recall:  58.31%; FB1:  69.99  1219
+             MISC: precision:  69.94%; recall:  63.89%; FB1:  66.78  835
+              ORG: precision:  36.04%; recall:  42.65%; FB1:  39.07  1587
+              PER: precision:  49.43%; recall:  11.90%; FB1:  19.18  441
+\end{verbatim}  
+\endgroup
+\noindent and the following full output for the test file:\\
+
+\begingroup
+    \fontsize{8pt}{12pt}\selectfont
+    \begin{verbatim}  
+processed 46666 tokens with 5616 phrases; found: 3943 phrases; correct: 2101.
+accuracy:  37.73%; (non-O)
+accuracy:  88.02%; precision:  53.28%; recall:  37.41%; FB1:  43.96
+              LOC: precision:  86.52%; recall:  55.88%; FB1:  67.91  1076
+             MISC: precision:  54.45%; recall:  50.64%; FB1:  52.48  652
+              ORG: precision:  37.26%; recall:  44.93%; FB1:  40.74  1986
+              PER: precision:  32.75%; recall:   4.68%; FB1:   8.19  229
+\end{verbatim}
+
+
+\endgroup
+
+\end{document}
